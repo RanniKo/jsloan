@@ -1,3 +1,4 @@
+package com.jsloan.repayment;
 import static com.jsloan.common.constant.Constants.*;
 import static org.junit.Assert.assertTrue;
 
@@ -15,9 +16,9 @@ import com.jsloan.LoanRate;
 import com.jsloan.repayment.LoanReimburse;
 import com.jsloan.repayment.LoanRepayPlan;
 
-//원금균등대출 상환계획 TEST
+//원리금균등대출 상환계획 TEST
 @RunWith(Parameterized.class)
-public class LoanRepayPlan_EqualRepayPrcp {
+public class LoanRepayPlan_EqualRepayPrcpIntr {
     
     private Loan loan;   
 
@@ -28,7 +29,7 @@ public class LoanRepayPlan_EqualRepayPrcp {
     private BigDecimal expectTotPrincipal;
     
     
-    public LoanRepayPlan_EqualRepayPrcp(Loan loan, String expectTotAmountForPay, String expectTotInterest, String expectTotPrincipal) {
+    public LoanRepayPlan_EqualRepayPrcpIntr(Loan loan, String expectTotAmountForPay, String expectTotInterest, String expectTotPrincipal) {
         this.loan = loan;
         this.expectTotAmountForPay = new BigDecimal(expectTotAmountForPay);
         this.expectTotInterest = new BigDecimal(expectTotInterest);
@@ -46,14 +47,14 @@ public class LoanRepayPlan_EqualRepayPrcp {
         loanRates = new ArrayList<LoanRate>();        
         loanRates.add(LoanRate.builder().addRate(new BigDecimal("0.07")).stndRate(new BigDecimal("0.03")).applyRate(new BigDecimal("0.10")).overdueRate(new BigDecimal("0.24")).startTerm(1).endTerm(24).build());                  
         paraLoan = createLoan(LoanProduct.CREDIT, "20180418", "10000000", "0", 24, loanRates, "20200418");
-        loanList.add(new Object[] {paraLoan, "11041657", "1041657" ,"10000000"});
+        loanList.add(new Object[] {paraLoan, "11074769", "1074769" ,"10000000"});
 
         //case2
         loanRates = new ArrayList<LoanRate>();        
         loanRates.add(LoanRate.builder().addRate(new BigDecimal("0.10")).stndRate(new BigDecimal("0.03")).applyRate(new BigDecimal("0.13")).overdueRate(new BigDecimal("0.24")).startTerm(1).endTerm(12).build());        
         loanRates.add(LoanRate.builder().addRate(new BigDecimal("0.07")).stndRate(new BigDecimal("0.03")).applyRate(new BigDecimal("0.10")).overdueRate(new BigDecimal("0.24")).startTerm(13).endTerm(24).build());          
         paraLoan = createLoan(LoanProduct.CREDIT, "20171210", "10000000", "0", 24, loanRates, "20200418");
-        loanList.add(new Object[] {paraLoan, "11272907", "1272907" ,"10000000"});
+        loanList.add(new Object[] {paraLoan, "11320514", "1320514" ,"10000000"});
         
         //case3
         loanRates = new ArrayList<LoanRate>();        
@@ -61,14 +62,14 @@ public class LoanRepayPlan_EqualRepayPrcp {
         loanRates.add(LoanRate.builder().addRate(new BigDecimal("0.07")).stndRate(new BigDecimal("0.03")).applyRate(new BigDecimal("0.10")).overdueRate(new BigDecimal("0.24")).startTerm(13).endTerm(18).build());          
         loanRates.add(LoanRate.builder().addRate(new BigDecimal("0.07")).stndRate(new BigDecimal("0.13")).applyRate(new BigDecimal("0.20")).overdueRate(new BigDecimal("0.24")).startTerm(19).endTerm(60).build());
         paraLoan = createLoan(LoanProduct.CREDIT, "20150118", "10000000", "0", 60, loanRates, "20200418");
-        loanList.add(new Object[] {paraLoan, "14704157", "4704157" ,"10000000"});
+        loanList.add(new Object[] {paraLoan, "15409637", "5409637" ,"10000000"});
 
         //case4        
         loanRates = new ArrayList<LoanRate>();        
         loanRates.add(LoanRate.builder().addRate(new BigDecimal("0.07")).stndRate(new BigDecimal("0.03")).applyRate(new BigDecimal("0.12")).overdueRate(new BigDecimal("0.24")).startTerm(1).endTerm(12).build());        
         loanRates.add(LoanRate.builder().addRate(new BigDecimal("0.03")).stndRate(new BigDecimal("0.02")).applyRate(new BigDecimal("0.05")).overdueRate(new BigDecimal("0.24")).startTerm(13).endTerm(48).build());          
         paraLoan = createLoan(LoanProduct.CREDIT, "20180218", "25000000", "0", 48, loanRates, "20200418");
-        loanList.add(new Object[] {paraLoan, "29101542", "4101542" ,"25000000"});       
+        loanList.add(new Object[] {paraLoan, "29286208", "4286208" ,"25000000"});       
         
         return loanList;       
     }
@@ -88,22 +89,22 @@ public class LoanRepayPlan_EqualRepayPrcp {
                 .loanAmtForLast(new BigDecimal(loanAmtForLast) )
                 .totLoanMonths(totLoanMonths)
                 .rates(loanRates)
-                .repayMethod(RepayMethod.EQUAL_PRCP)
+                .repayMethod(RepayMethod.EQUAL_PRCP_INTR)
                 .endDate(endDate)
                 .build();
     }     
     
-    // 원금균등 Normal Case TEST
+    // 원리금균등 Normal Case TEST
     @Test
     public void equalRepayPrcp_Norm() {
                        
         LoanReimburse reim = loan.getRepayPlan();
         System.out.println("========================================================");
-        System.out.println("EQUAL_PRCP:"+loan);
-        System.out.println("EQUAL_PRCP:"+reim);
+        System.out.println("EQUAL_PRCP_INTR:"+loan);
+        System.out.println("EQUAL_PRCP_INTR:"+reim);
         
         for(LoanRepayPlan plan:reim.getLoanRepayPlans()) {
-            System.out.println("EQUAL_PRCP:"+plan);
+            System.out.println("EQUAL_PRCP_INTR:"+plan);
         }
         
         assertTrue(reim.getTotAmountForPay().equals(expectTotAmountForPay));

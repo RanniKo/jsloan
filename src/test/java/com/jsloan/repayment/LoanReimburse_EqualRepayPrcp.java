@@ -1,3 +1,4 @@
+package com.jsloan.repayment;
 import static com.jsloan.common.constant.Constants.*;
 import static org.junit.Assert.assertTrue;
 
