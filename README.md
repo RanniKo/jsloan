@@ -20,3 +20,8 @@ jsloan은 Non-repository(DB) POJO로 이루어진 대출이자계산 API 입니�
 - Eclipse
 
 ### API Example
+- src/test/java 참고
+
+### TO DO LIST
+- 중도상환 (RepayType.EARL_REDEM) 구현
+- 휴일 (법정공휴일 등) 고려토록 변경
