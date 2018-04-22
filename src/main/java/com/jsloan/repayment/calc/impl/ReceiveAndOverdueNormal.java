@@ -73,7 +73,8 @@ public class ReceiveAndOverdueNormal implements LoanReceiveAndOverdueCalc {
                 repayment.setTermNo(repayPlan.getTermNo());
                 repayment.setRepayType(receipt.getRepayType());
                 
-                if(receipt.getBaseDate().compareTo(repayPlan.getPlanDate()) > 0){
+                if(receipt.getBaseDate().compareTo(repayPlan.getPlanDate()) > 0){ 
+                    //연체이자 계산
                     BigDecimal overDueFee = overdueFeeCalc(loan, repayPlan, loanRepayments, repayment.getBaseDate());
                     repayPlan.setOverdueFee( repayPlan.getOverdueFee().add(overDueFee) );
                     repayPlan.setAmountForPay( repayPlan.getAmountForPay().add(overDueFee) );
@@ -89,40 +90,15 @@ public class ReceiveAndOverdueNormal implements LoanReceiveAndOverdueCalc {
                 BigDecimal amtOrder2 = amtOrder1.subtract(interestForPay);
                 BigDecimal amtOrder3 = amtOrder2.subtract(principalForPay);
                 
-                repayPlan.setRecvOverdueFee( getRecvAmtForRepayment(amtOrder1, overdueFeeForPay, repayPlan, RecvAmtDivision.OVERDUE_FEE) );
-                repayment.setOverdueFee( getRecvAmtForPlan(amtOrder1, overdueFeeForPay) );
+                repayPlan.setRecvOverdueFee( getRecvAmtForPlan(amtOrder1, overdueFeeForPay, repayPlan, RecvAmtDivision.OVERDUE_FEE) );
+                repayment.setOverdueFee( getRecvAmtForRepayment(amtOrder1, overdueFeeForPay) );
                 
-                repayPlan.setRecvInterest( getRecvAmtForRepayment(amtOrder2, interestForPay, repayPlan, RecvAmtDivision.INTEREST) );
-                repayment.setInterest( getRecvAmtForPlan(amtOrder2, interestForPay) );
+                repayPlan.setRecvInterest( getRecvAmtForPlan(amtOrder2, interestForPay, repayPlan, RecvAmtDivision.INTEREST) );
+                repayment.setInterest( getRecvAmtForRepayment(amtOrder2, interestForPay) );
                 
-                repayPlan.setRecvPrincipal( getRecvAmtForRepayment(amtOrder3, principalForPay, repayPlan, RecvAmtDivision.PRINCIPAL) );
-                repayment.setPrincipal( getRecvAmtForPlan(amtOrder3, principalForPay) );        
+                repayPlan.setRecvPrincipal( getRecvAmtForPlan(amtOrder3, principalForPay, repayPlan, RecvAmtDivision.PRINCIPAL) );
+                repayment.setPrincipal( getRecvAmtForRepayment(amtOrder3, principalForPay) );        
                 
-                /*
-                if(amtOrder1.compareTo(BigDecimal.ZERO) > 0) {
-                    repayPlan.setRecvOverdueFee(repayPlan.getOverdueFee());
-                    repayment.setOverdueFee(overdueFeeForPay);                    
-                }else {
-                    repayPlan.setRecvOverdueFee(repayPlan.getRecvOverdueFee().add( minusToZero(overdueFeeForPay.add(amtOrder1)) ));
-                    repayment.setOverdueFee( minusToZero(overdueFeeForPay.add(amtOrder1)) );
-                }
-                
-                if(amtOrder2.compareTo(BigDecimal.ZERO) > 0) {
-                    repayPlan.setRecvInterest(repayPlan.getInterest());
-                    repayment.setInterest(interestForPay);                    
-                }else {
-                    repayPlan.setRecvInterest(repayPlan.getRecvInterest().add( minusToZero(interestForPay.add(amtOrder2)) ));
-                    repayment.setInterest( minusToZero(interestForPay.add(amtOrder2)) );                    
-                }
-                
-                if(amtOrder3.compareTo(BigDecimal.ZERO) > 0) {
-                    repayPlan.setRecvPrincipal(repayPlan.getPrincipal());
-                    repayment.setPrincipal(principalForPay);                    
-                }else {
-                    repayPlan.setRecvPrincipal(repayPlan.getRecvPrincipal().add( minusToZero(principalForPay.add(amtOrder3)) ));
-                    repayment.setPrincipal( minusToZero(principalForPay.add(amtOrder3)) );                    
-                }
-                */
                 repayment.setRepayAmount(repayment.getOverdueFee()
                                         .add(repayment.getInterest())
                                         .add(repayment.getPrincipal()));
@@ -152,7 +128,11 @@ public class ReceiveAndOverdueNormal implements LoanReceiveAndOverdueCalc {
         
     }
     
-    private BigDecimal getRecvAmtForPlan(BigDecimal amtAfter, BigDecimal amtForPay) {
+    
+    /**
+     * 해당 회차의 수납금액계산 (for Repayment) 
+     */
+    private BigDecimal getRecvAmtForRepayment(BigDecimal amtAfter, BigDecimal amtForPay) {
 
         if(amtAfter.compareTo(BigDecimal.ZERO) > 0) {
             return amtForPay;
@@ -160,8 +140,12 @@ public class ReceiveAndOverdueNormal implements LoanReceiveAndOverdueCalc {
 
         return minusToZero(amtForPay.add(amtAfter));               
     }
+
     
-    private BigDecimal getRecvAmtForRepayment(BigDecimal amtAfter, BigDecimal amtForPay, LoanRepayPlan repayPlan, RecvAmtDivision recvAmtDiv) {
+    /**
+     * 해당 회차의 수납금액계산 (for Plan) 
+     */
+    private BigDecimal getRecvAmtForPlan(BigDecimal amtAfter, BigDecimal amtForPay, LoanRepayPlan repayPlan, RecvAmtDivision recvAmtDiv) {
 
         if(amtAfter.compareTo(BigDecimal.ZERO) > 0) {
             switch (recvAmtDiv) {
@@ -179,7 +163,7 @@ public class ReceiveAndOverdueNormal implements LoanReceiveAndOverdueCalc {
                 case INTEREST : return repayPlan.getRecvInterest().add( minusToZero(amtForPay.add(amtAfter)) );
                     
                 case PRINCIPAL : return repayPlan.getRecvPrincipal().add( minusToZero(amtForPay.add(amtAfter)) );
-        }            
+            }     
         }        
         
         return BigDecimal.ZERO;
