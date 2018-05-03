@@ -98,7 +98,7 @@ public class LoanRepayPlan_PaymentMaturity {
     @Test
     public void equalRepayPrcp_Norm() {
                        
-        LoanReimburse reim = loan.getRepayPlan();
+        LoanReimburse reim = loan.getFirstPlans();
         
         System.out.println("PAYMT_MTRT:"+reim);
         

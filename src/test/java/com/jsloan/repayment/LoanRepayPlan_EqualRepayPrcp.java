@@ -98,7 +98,7 @@ public class LoanRepayPlan_EqualRepayPrcp {
     @Test
     public void equalRepayPrcp_Norm() {
                        
-        LoanReimburse reim = loan.getRepayPlan();
+        LoanReimburse reim = loan.getFirstPlans();
         System.out.println("========================================================");
         System.out.println("EQUAL_PRCP:"+loan);
         System.out.println("EQUAL_PRCP:"+reim);
