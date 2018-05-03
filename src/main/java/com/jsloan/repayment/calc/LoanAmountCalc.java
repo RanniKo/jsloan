@@ -23,15 +23,26 @@ public abstract class LoanAmountCalc {
     private static final String TOT_BASE_DATE = "99991231";
     
     /**
-     * 수납 / 연체처리를 위한 참조 (구현 Class에서 주입받는다.)
+     * 수납 / 연체처리를 위한 참조
      */
     protected LoanReceiveAndOverdueCalc loanReceiveAndOverdueCalc;
     
     /**
-     * 대출정보를 이용해 기본상환계획을 산출한다. (수납 및 연체 반영전)
+     * 대출정보를 이용해 기본상환계획을 산출한다.
      */
-    abstract protected List<LoanRepayPlan> getPlans(Loan loan);    
+    abstract protected List<LoanRepayPlan> getPlans(Loan loan, int startTerm, BigDecimal balance);        
     
+    public LoanAmountCalc(LoanReceiveAndOverdueCalc loanReceiveAndOverdueCalc) {
+        this.loanReceiveAndOverdueCalc = loanReceiveAndOverdueCalc;
+    }      
+    
+    
+    /**
+     * 대출정보를 이용해 최초 기본상환계획을 산출한다. (수납 및 연체 반영전)
+     */    
+    private List<LoanRepayPlan> getPlans(Loan loan) {
+        return getPlans(loan, 1, loan.getLoanAmt());
+    }    
     
     /**
      * 기본상환계획 및 총금액정보를 반환한다. (수납 및 연체 반영전)

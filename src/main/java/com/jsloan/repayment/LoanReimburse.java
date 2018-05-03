@@ -1,6 +1,7 @@
 package com.jsloan.repayment;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.jsloan.common.constant.Constants;
@@ -39,4 +40,19 @@ public class LoanReimburse {
     //대출상환내역(수납내역의 처리결과)    
     private List<LoanRepayment> loanRepayments;
 
+    public void addRepayPlan(LoanRepayPlan repayPlan) {
+        loanRepayPlans.add(repayPlan);
+    }
+    
+    public void addAllRepayPlans(List<LoanRepayPlan> repayPlans) {
+        loanRepayPlans.addAll(repayPlans);
+    }    
+    
+    public void addRepayment(LoanRepayment repayment) {
+        loanRepayments.add(repayment);        
+    }
+    
+    public void addAllRepayments(List<LoanRepayment> repayments) {
+        loanRepayments.addAll(repayments);        
+    } 
 }

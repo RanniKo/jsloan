@@ -62,6 +62,8 @@ public class Loan {
     // 수납내역
     private List<LoanReceipt> receipts;
 
+    // 대출잔액
+    private BigDecimal loanBalance;
     
     /**
      * 최초 Build 시점에 실행된다. 
@@ -179,7 +181,7 @@ public class Loan {
      * 대출스케줄(plan)확인을 위한 상환정보(LoanReimburse)를 반환한다. 
      * 수납내역/연체를 고려하지 않은 대출정보만을 사용한다.  
      */
-    public LoanReimburse getRepayPlan() {       
+    public LoanReimburse getFirstPlans() {       
         return loanAmountCalc.getRepayPlan(this);
     }
     

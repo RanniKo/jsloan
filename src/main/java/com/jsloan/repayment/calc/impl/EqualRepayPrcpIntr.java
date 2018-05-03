@@ -22,37 +22,43 @@ import com.jsloan.repayment.calc.LoanReceiveAndOverdueCalc;
 public class EqualRepayPrcpIntr extends LoanAmountCalc {   
     
     public EqualRepayPrcpIntr(LoanReceiveAndOverdueCalc loanReceiveAndOverdueCalc) {
-        this.loanReceiveAndOverdueCalc = loanReceiveAndOverdueCalc;
+        super(loanReceiveAndOverdueCalc);
     }    
 
     
     @Override
-    protected List<LoanRepayPlan> getPlans(Loan loan) {
+    protected List<LoanRepayPlan> getPlans(Loan loan, int startTerm, BigDecimal balance) {
+        
+        BigDecimal calcBalance = new BigDecimal(balance.toString());
         
         List<LoanRepayPlan> repayPlans = new ArrayList<LoanRepayPlan>();  
         
-        int remainTerm = loan.getTotLoanMonths();
-        
-        BigDecimal balance = loan.getLoanAmt();
+        int remainTerm = loan.getTotLoanMonths() - startTerm + 1;        
         
         for(LoanRate rate : loan.getRates()) {
             
+            //최초 Loop, 입력된 시작회차에 해당하는 Rate가 아닐경우 다음으로 continue;
+            if(  repayPlans.size() == 0
+             && !loan.getApplyRate(startTerm).equals(rate)) continue;            
+            
             BigDecimal monthRate = CalcUtil.divide(rate.getApplyRate(), new BigDecimal("12"));
+            
+            int calcStartTerm = repayPlans.size() == 0 ? startTerm : rate.getStartTerm();
             
             BigDecimal pmt = CalcUtil.calcPmt(monthRate
                                                 , remainTerm
-                                                , CalcUtil.getMinus(balance)
+                                                , CalcUtil.getMinus(calcBalance)
                                                 , loan.getLoanAmtForLast()
                                                 , loan.getRepayPoint());
             
-            for(int i=rate.getStartTerm(); i<=rate.getEndTerm(); i++) {
+            for(int i=calcStartTerm; i<=rate.getEndTerm(); i++) {
                 
                 LoanRepayPlan repayPlan = new LoanRepayPlan();
                 
-                BigDecimal monthInterest = CalcUtil.multiplyM(balance, monthRate);                    
-                BigDecimal monthPrincipal = (i==loan.getTotLoanMonths()) ? balance : pmt.subtract(monthInterest);
+                BigDecimal monthInterest = CalcUtil.multiplyM(calcBalance, monthRate);                    
+                BigDecimal monthPrincipal = (i==loan.getTotLoanMonths()) ? calcBalance : pmt.subtract(monthInterest);
                 BigDecimal amountForPay =  monthInterest.add(monthPrincipal);   
-                BigDecimal afterBalance = balance.subtract(monthPrincipal);                    
+                BigDecimal afterBalance = calcBalance.subtract(monthPrincipal);                    
                 String planDate = CommUtil.addMonth(loan.getLoanDate(), i, false);
                 
                 repayPlan.setTermNo(i);
@@ -61,7 +67,7 @@ public class EqualRepayPrcpIntr extends LoanAmountCalc {
                 repayPlan.setPrincipal(monthPrincipal);
                 repayPlan.setAmountForPay(amountForPay);
                 repayPlan.setOverdueFee(BigDecimal.ZERO);
-                repayPlan.setBalance(balance);
+                repayPlan.setBalance(calcBalance);
                 repayPlan.setAfterBalance(afterBalance);
                 repayPlan.setRepayStatus(RepayStatus.UNPAID_YET);
                 repayPlan.setRecvOverdueFee(BigDecimal.ZERO);
@@ -69,7 +75,7 @@ public class EqualRepayPrcpIntr extends LoanAmountCalc {
                 repayPlan.setRecvPrincipal(BigDecimal.ZERO);
                 repayPlans.add(repayPlan);
                 
-                balance = afterBalance;
+                calcBalance = afterBalance;
             }
             
             remainTerm -= (rate.getEndTerm() - rate.getStartTerm() + 1);
