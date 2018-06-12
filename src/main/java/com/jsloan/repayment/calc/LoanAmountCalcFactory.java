@@ -21,21 +21,21 @@ public class LoanAmountCalcFactory {
      */
     public static LoanAmountCalc getInstance(Loan loan) {
 
-		switch(loan.getRepayMethod()) {
-    		
-		    case EQUAL_PRCP_INTR:
-    		    return new EqualRepayPrcpIntr(new ReceiveAndOverdueNormal());
-    		
-    		case EQUAL_PRCP:
-    		    return new EqualRepayPrcp(new ReceiveAndOverdueNormal());
-    		
-    		case PAYMT_MTRT:
+        switch(loan.getRepayMethod()) {
+            
+            case EQUAL_PRCP_INTR:
+                return new EqualRepayPrcpIntr(new ReceiveAndOverdueNormal());
+            
+            case EQUAL_PRCP:
+                return new EqualRepayPrcp(new ReceiveAndOverdueNormal());
+            
+            case PAYMT_MTRT:
                 return new PaymentMaturity(new ReceiveAndOverdueNormal());
-    		    
-    	    default:
-    	        return null;
-	        
-		}
-	    
-	}    
+                
+            default:
+                return null;
+            
+        }
+        
+    }    
 }

@@ -46,5 +46,24 @@ public class LoanRepayment {
     
     //상환종류
     private Constants.RepayType repayType;
-
+    
+    public LoanRepayment() {
+        
+    }
+    
+    
+    public LoanRepayment(LoanRepayment loanRepayment) {
+        this.termNo       = loanRepayment.termNo      ;
+        this.planDate     = loanRepayment.planDate    ;
+        this.baseDate     = loanRepayment.baseDate    ;
+        this.receiveDate  = loanRepayment.receiveDate ; 
+        this.principal    = loanRepayment.principal   ;
+        this.interest     = loanRepayment.interest    ;
+        this.overdueFee   = loanRepayment.overdueFee  ;
+        this.repayAmount  = loanRepayment.repayAmount ;
+        this.balance      = loanRepayment.balance     ;
+        this.afterBalance = loanRepayment.afterBalance;
+        this.repayType    = loanRepayment.repayType   ;
+ 
+    }    
 }

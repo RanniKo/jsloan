@@ -4,6 +4,8 @@ import java.util.List;
 
 import com.jsloan.Loan;
 import com.jsloan.common.constant.Constants.OverdueStatus;
+import com.jsloan.repayment.LoanReceipt;
+import com.jsloan.repayment.LoanReimbursePart;
 import com.jsloan.repayment.LoanRepayPlan;
 import com.jsloan.repayment.LoanRepayment;
 
@@ -13,27 +15,21 @@ import com.jsloan.repayment.LoanRepayment;
  * @Descrption : 수납/연체 계산 Interface
  */
 public interface LoanReceiveAndOverdueCalc {
-
-    /**
-     * 상환계획 및 수납내역을 이용하여 상환내역/연체를 계산한다.
-     * void 현재 계산된 결과는 객체 내부 List에 저장한다.
-     */
-    void calcReceiveAndOverdue(String baseDate, Loan loan, List<LoanRepayPlan> loanRepayPlans);
-
+    
     /**
      * 입력된 상환계획을 기준으로 연체상태를 반환한다.
      */
     OverdueStatus getOverdueStatus(List<LoanRepayPlan> loanRepayPlans);    
     
     /**
-     * 생성된 상환내역을 반환한다.
+     * 수납내역과 상환계획을 이용하여 부분변제(상환내역 생성, 상환계획 갱신)을 반환한다. 
      */    
-    List<LoanRepayment> getLoanRepayments();
-
+    LoanReimbursePart dealingLoanReceipt(Loan loan, LoanReceipt receipt, List<LoanRepayPlan> loanRepayPlans, int currTerm, String lastRepaymentDate);
     
+
     /**
-     * 연체 및 상환이 반영된 상환계획을 반환한다.
-     */
-    List<LoanRepayPlan> getFixedLoanRepayPlans();
+     * 입력된 상환계획 및 최종상환일자를 기준으로 이후 상환계획에 대한 연체정보(연체금액, 상태)를 갱신한다. 
+     */    
+    void handleOverdue(String baseDate, Loan loan, String lastRepaymentDate, List<LoanRepayPlan> loanRepayPlans);
     
 }

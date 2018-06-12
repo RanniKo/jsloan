@@ -49,5 +49,29 @@ public class LoanRepayPlan {
     
     //상환상태
     private Constants.RepayStatus repayStatus;
-
+    
+    //상환종류
+    private Constants.RepayType repayType;
+    
+    
+    public LoanRepayPlan() {
+        
+    }    
+    
+    public LoanRepayPlan(LoanRepayPlan loanRepayPlan) {
+        this.termNo         = loanRepayPlan.termNo        ;
+        this.planDate       = loanRepayPlan.planDate      ;
+        this.principal      = loanRepayPlan.principal     ;
+        this.interest       = loanRepayPlan.interest      ; 
+        this.overdueFee     = loanRepayPlan.overdueFee    ;
+        this.amountForPay   = loanRepayPlan.amountForPay  ;
+        this.recvPrincipal  = loanRepayPlan.recvPrincipal ;
+        this.recvInterest   = loanRepayPlan.recvInterest  ;
+        this.recvOverdueFee = loanRepayPlan.recvOverdueFee;
+        this.balance        = loanRepayPlan.balance       ;
+        this.afterBalance   = loanRepayPlan.afterBalance  ;
+        this.repayStatus    = loanRepayPlan.repayStatus   ;
+        this.repayType      = loanRepayPlan.repayType     ;
+    }
+    
 }

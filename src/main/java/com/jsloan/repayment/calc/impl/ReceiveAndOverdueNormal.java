@@ -7,9 +7,14 @@ import java.util.List;
 
 import com.jsloan.Loan;
 import static com.jsloan.common.constant.Constants.*;
+
+import com.jsloan.common.constant.Constants.OverdueStatus;
+import com.jsloan.common.constant.Constants.RecvAmtDivision;
+import com.jsloan.common.constant.Constants.RepayStatus;
 import com.jsloan.common.util.CalcUtil;
 import com.jsloan.common.util.CommUtil;
 import com.jsloan.repayment.LoanReceipt;
+import com.jsloan.repayment.LoanReimbursePart;
 import com.jsloan.repayment.LoanRepayPlan;
 import com.jsloan.repayment.LoanRepayment;
 import com.jsloan.repayment.calc.LoanReceiveAndOverdueCalc;
@@ -21,96 +26,81 @@ import lombok.Getter;
  * @author Kim jongseong
  * @Descrption : [Normal Case] 수납/연체 계산 
  */
-@Getter
 public class ReceiveAndOverdueNormal implements LoanReceiveAndOverdueCalc {    
     
-    private List<LoanRepayment> loanRepayments;    
-    private List<LoanRepayPlan> fixedLoanRepayPlans;            
-
     /**
-     * 상환계획 및 수납내역을 이용하여 상환내역/연체를 계산한다.
-     * void 현재 계산된 결과는 객체 내부 List에 저장한다.
-     */
-    public void calcReceiveAndOverdue(String baseDate, Loan loan, List<LoanRepayPlan> loanRepayPlans) {
+     * 수납내역과 상환계획을 이용하여 부분변제(상환내역 생성, 상환계획 갱신)을 반환한다. 
+     */ 
+    @Override
+    public LoanReimbursePart dealingLoanReceipt(Loan loan, LoanReceipt receipt, List<LoanRepayPlan> loanRepayPlans, int currTerm, String lastRepaymentDate) { 
         
-        this.loanRepayments = new ArrayList<LoanRepayment>();
-        this.fixedLoanRepayPlans = new ArrayList<LoanRepayPlan>(loanRepayPlans);        
+        LoanReimbursePart returnLoanReimbursePart = new LoanReimbursePart();        
         
-        this.dealingLoanReceipt(loan);
-        this.handleOverdue(baseDate, loan);
-    }
-
-    
-    /**
-     * 수납내역을 이용하여 상환내역/연체를 계산한다. 
-     * 상환내역 생성 (loanRepayments)
-     * 상환계획 수정 (fixedLoanRepayPlans)
-     */
-    private void dealingLoanReceipt(Loan loan) { 
+        List<LoanRepayPlan> createdRepayPlans = new ArrayList<>();
+        List<LoanRepayment> createdRepayments = new ArrayList<>();
+                    
+        BigDecimal remainAmt = receipt.getReceiptAmount();
         
-        List<LoanReceipt> receipts = loan.getReceipts();
-        
-        receipts.sort(new Comparator<LoanReceipt>() {
-            public int compare(LoanReceipt arr1, LoanReceipt arr2) {
-                return arr1.getReceiveDate().compareTo(arr2.getReceiveDate());                
-            }       
-        });
-        
-        int currTerm = 1;
-        
-        for(LoanReceipt receipt : receipts) {
+        for(int i=currTerm; i<= loanRepayPlans.size();i++) {
             
-            BigDecimal remainAmt = receipt.getReceiptAmount();
-
-            for(int i=currTerm; i<= fixedLoanRepayPlans.size();i++) {
-                LoanRepayPlan repayPlan = fixedLoanRepayPlans.get(i-1);
-                currTerm = repayPlan.getTermNo();
-
-                
-                if(receipt.getBaseDate().compareTo(repayPlan.getPlanDate()) > 0){ 
-                    //연체이자 계산
-                    BigDecimal overDueFee = overdueFeeCalc(loan, repayPlan, loanRepayments, receipt.getBaseDate());
-                    repayPlan.setOverdueFee( repayPlan.getOverdueFee().add(overDueFee) );
-                    repayPlan.setAmountForPay( repayPlan.getAmountForPay().add(overDueFee) );
-                }
-                
-                BigDecimal interestForPay = repayPlan.getInterest().subtract(repayPlan.getRecvInterest());
-                BigDecimal principalForPay = repayPlan.getPrincipal().subtract(repayPlan.getRecvPrincipal());
-                BigDecimal overdueFeeForPay = repayPlan.getOverdueFee().subtract(repayPlan.getRecvOverdueFee());
-                                
-                BigDecimal amtOrder1 = remainAmt.subtract(overdueFeeForPay);
-                BigDecimal amtOrder2 = amtOrder1.subtract(interestForPay);
-                BigDecimal amtOrder3 = amtOrder2.subtract(principalForPay);
-                
-                BigDecimal repayOverDueFee =  getRecvAmtForRepayment(amtOrder1, overdueFeeForPay);
-                BigDecimal repayInterest = getRecvAmtForRepayment(amtOrder2, interestForPay);
-                BigDecimal repayPrincipal = getRecvAmtForRepayment(amtOrder3, principalForPay);
-                
-                loanRepayments.add( createRepayment(receipt, repayPlan, repayOverDueFee, repayInterest, repayPrincipal) );                
-                
-                repayPlan.setRecvOverdueFee( getRecvAmtForPlan(amtOrder1, overdueFeeForPay, repayPlan, RecvAmtDivision.OVERDUE_FEE) );                
-                repayPlan.setRecvInterest( getRecvAmtForPlan(amtOrder2, interestForPay, repayPlan, RecvAmtDivision.INTEREST) );                
-                repayPlan.setRecvPrincipal( getRecvAmtForPlan(amtOrder3, principalForPay, repayPlan, RecvAmtDivision.PRINCIPAL) );                        
-                
-                remainAmt = amtOrder3;
-                
-                if(remainAmt.compareTo(BigDecimal.ZERO) >= 0) {
-                    repayPlan.setRepayStatus(RepayStatus.COMPLETE);
-                }else {
-                    repayPlan.setRepayStatus(RepayStatus.UNPAID_YET);
-                }                
-                
-                if(remainAmt.compareTo(BigDecimal.ZERO) < 0) {
-                    break;
-                }
-                else if (remainAmt.compareTo(BigDecimal.ZERO) == 0) {
-                    currTerm++;
-                    break;
-                }
-                
-            }            
+            LoanRepayPlan repayPlan = new LoanRepayPlan(loanRepayPlans.get(i-1));
             
-        }        
+            currTerm = repayPlan.getTermNo();
+            
+            if(receipt.getBaseDate().compareTo(repayPlan.getPlanDate()) > 0){ 
+                //연체이자 계산
+                BigDecimal overDueFee = overdueFeeCalc(loan, repayPlan, lastRepaymentDate, receipt.getBaseDate());
+                repayPlan.setOverdueFee( repayPlan.getOverdueFee().add(overDueFee) );
+                repayPlan.setAmountForPay( repayPlan.getAmountForPay().add(overDueFee) );
+            }
+            
+            BigDecimal interestForPay = repayPlan.getInterest().subtract(repayPlan.getRecvInterest());
+            BigDecimal principalForPay = repayPlan.getPrincipal().subtract(repayPlan.getRecvPrincipal());
+            BigDecimal overdueFeeForPay = repayPlan.getOverdueFee().subtract(repayPlan.getRecvOverdueFee());
+                            
+            BigDecimal amtOrder1 = remainAmt.subtract(overdueFeeForPay);
+            BigDecimal amtOrder2 = amtOrder1.subtract(interestForPay);
+            BigDecimal amtOrder3 = amtOrder2.subtract(principalForPay);
+            
+            BigDecimal repayOverDueFee =  getRecvAmtForRepayment(amtOrder1, overdueFeeForPay);
+            BigDecimal repayInterest = getRecvAmtForRepayment(amtOrder2, interestForPay);
+            BigDecimal repayPrincipal = getRecvAmtForRepayment(amtOrder3, principalForPay);
+            
+            createdRepayments.add( createRepayment(receipt, repayPlan, repayOverDueFee, repayInterest, repayPrincipal) );                
+            
+            repayPlan.setRecvOverdueFee( getRecvAmtForPlan(amtOrder1, overdueFeeForPay, repayPlan, RecvAmtDivision.OVERDUE_FEE) );                
+            repayPlan.setRecvInterest( getRecvAmtForPlan(amtOrder2, interestForPay, repayPlan, RecvAmtDivision.INTEREST) );                
+            repayPlan.setRecvPrincipal( getRecvAmtForPlan(amtOrder3, principalForPay, repayPlan, RecvAmtDivision.PRINCIPAL) );                        
+            
+            remainAmt = amtOrder3;
+            
+            if(remainAmt.compareTo(BigDecimal.ZERO) >= 0) {
+                repayPlan.setRepayStatus(RepayStatus.COMPLETE);
+            }else {
+                repayPlan.setRepayStatus(RepayStatus.UNPAID_YET);
+            }                
+            
+            createdRepayPlans.add(repayPlan);                        
+            
+            if(remainAmt.compareTo(BigDecimal.ZERO) < 0) {
+                break;
+            }
+            else if (remainAmt.compareTo(BigDecimal.ZERO) == 0) {
+                currTerm++;
+                break;
+            }
+            
+        }
+        
+        returnLoanReimbursePart.setLastTermNo(currTerm);
+        
+        returnLoanReimbursePart.setLastRepaymentDate(createdRepayments.get(createdRepayments.size()-1).getBaseDate());
+        
+        returnLoanReimbursePart.setResultRepayPlans(createdRepayPlans);
+        
+        returnLoanReimbursePart.setResultRepayments(createdRepayments);        
+        
+        return returnLoanReimbursePart;
         
     }
 
@@ -185,13 +175,14 @@ public class ReceiveAndOverdueNormal implements LoanReceiveAndOverdueCalc {
     /**
      * 상환내역 반영 후 연체분에 대한 연체료를 계산, 상환계획에 반영한다.
      */
-    private void handleOverdue(String baseDate, Loan loan) {
+    @Override
+    public void handleOverdue(String baseDate, Loan loan, String lastRepaymentDate, List<LoanRepayPlan> loanRepayPlans) {
         
-        for(LoanRepayPlan repayPlan :fixedLoanRepayPlans) {
+        for(LoanRepayPlan repayPlan :loanRepayPlans) {
             if(repayPlan.getRepayStatus() == RepayStatus.COMPLETE) continue;            
             if(baseDate.compareTo(repayPlan.getPlanDate()) <= 0) break;
             
-            BigDecimal overDueFee = overdueFeeCalc(loan, repayPlan, loanRepayments, baseDate);
+            BigDecimal overDueFee = overdueFeeCalc(loan, repayPlan, lastRepaymentDate, baseDate);
             repayPlan.setOverdueFee( repayPlan.getOverdueFee().add(overDueFee) );
             repayPlan.setAmountForPay( repayPlan.getAmountForPay().add(overDueFee) );
             repayPlan.setRepayStatus(RepayStatus.UNPAID_OVER);            
@@ -203,11 +194,9 @@ public class ReceiveAndOverdueNormal implements LoanReceiveAndOverdueCalc {
     /**
      * 입력된 일자(baseDate)를 기준으로 해당 상환계획건의 연체료를 계산한다.
      */
-    private BigDecimal overdueFeeCalc(Loan loan, LoanRepayPlan repayPlan, List<LoanRepayment> loanRepayments, String baseDate) {       
+    private BigDecimal overdueFeeCalc(Loan loan, LoanRepayPlan repayPlan, String lastRepaymentDate, String baseDate) {       
         
-        BigDecimal currOverdueRate = loan.getApplyRate(repayPlan.getTermNo()).getOverdueRate();
-        
-        String lastRepaymentDate = getLastRepaymentDate(loanRepayments, repayPlan.getTermNo());
+        BigDecimal currOverdueRate = loan.getApplyRate(repayPlan.getTermNo()).getOverdueRate();                
         
         if(CommUtil.isEmpty(lastRepaymentDate)) lastRepaymentDate = repayPlan.getPlanDate();
         
@@ -223,33 +212,16 @@ public class ReceiveAndOverdueNormal implements LoanReceiveAndOverdueCalc {
     }
     
     
-    /**
-     * 입력된 상환계획 회차에 해당하는 최종 상환일자를 반환한다.
-     */
-    private String getLastRepaymentDate(List<LoanRepayment> loanRepayments, int term) {
-        
-        String lastRepaymentDate = "";
-        for(int i=loanRepayments.size()-1;i>=0;i--) {
-            LoanRepayment loanRepayment = loanRepayments.get(i);
-            if(loanRepayment.getTermNo() == term) {
-                lastRepaymentDate = loanRepayment.getBaseDate();
-            }
-        }
-        return lastRepaymentDate;
-        
-    }
-    
-    
     private BigDecimal minusToZero(BigDecimal decimal) {
         if(decimal.compareTo(BigDecimal.ZERO) <= 0) return BigDecimal.ZERO;
         return decimal;
     }
     
     /**
-     * 입력된 상환계획을 기준으로 여부를 반환한다.
+     * 입력된 상환계획을 기준으로 연체여부를 반환한다.
      */
     @Override
-    public OverdueStatus getOverdueStatus(List<LoanRepayPlan> loanRepayPlans) {
+    public OverdueStatus getOverdueStatus(List<LoanRepayPlan> fixedLoanRepayPlans) {
         
         for(LoanRepayPlan repayPlan :fixedLoanRepayPlans) {
             
@@ -268,5 +240,6 @@ public class ReceiveAndOverdueNormal implements LoanReceiveAndOverdueCalc {
         return OverdueStatus.NORMAL;
         
     }
+
 
 }

@@ -1,6 +1,7 @@
 package com.jsloan.repayment.calc;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.jsloan.Loan;
@@ -10,7 +11,9 @@ import com.jsloan.common.exception.LoanError;
 import com.jsloan.common.util.CommUtil;
 import com.jsloan.repayment.LoanReceipt;
 import com.jsloan.repayment.LoanReimburse;
+import com.jsloan.repayment.LoanReimbursePart;
 import com.jsloan.repayment.LoanRepayPlan;
+import com.jsloan.repayment.LoanRepayment;
 
 /**
  * @Date : 2018. 2. 5
@@ -73,7 +76,7 @@ public abstract class LoanAmountCalc {
     public LoanReimburse getRepay(Loan loan) {
        return getRepay(loan, CommUtil.getToday());
     };
-
+    
     
     /**
      * 입력된 일자를 기준으로 상환정보(LoanReimburse)를 반환한다. 
@@ -85,15 +88,42 @@ public abstract class LoanAmountCalc {
         
         LoanReimburse returnReim = new LoanReimburse();
         
-        returnReim.setBaseDate(baseDate);
+        returnReim.setBaseDate(baseDate);        
         
-        returnReim.setLoanRepayPlans(getPlans(loan));
+        List<LoanRepayPlan> loanRepayPlans = getPlans(loan);
         
-        loanReceiveAndOverdueCalc.calcReceiveAndOverdue(baseDate, loan, returnReim.getLoanRepayPlans());
+        List<LoanRepayment> LoanRepayments = new ArrayList<>();
         
-        returnReim.setLoanRepayPlans(loanReceiveAndOverdueCalc.getFixedLoanRepayPlans());
+        int currTerm = 1;
+        String lastRepaymentDate = "";
         
-        returnReim.setLoanRepayments(loanReceiveAndOverdueCalc.getLoanRepayments());
+        for(LoanReceipt receipt :loan.getReceipts()) {            
+            
+            LoanReimbursePart part = loanReceiveAndOverdueCalc.dealingLoanReceipt(loan, receipt, loanRepayPlans, currTerm, lastRepaymentDate);
+                                    
+            
+            for(LoanRepayPlan repayPlan : part.getResultRepayPlans()) {
+                loanRepayPlans.set(repayPlan.getTermNo() - 1, repayPlan);
+            }
+            
+            LoanRepayments.addAll(part.getResultRepayments()); 
+            
+            if(receipt.getRepayType() == Constants.RepayType.EARL_REDEM) {
+                
+                //TODO 중도상환이후 ReScheduling 
+                
+            }
+            
+            currTerm = part.getLastTermNo();
+            lastRepaymentDate = part.getLastRepaymentDate();            
+            
+        }
+        
+        loanReceiveAndOverdueCalc.handleOverdue(baseDate, loan, lastRepaymentDate, loanRepayPlans);
+                
+        returnReim.setLoanRepayPlans(loanRepayPlans);
+        
+        returnReim.setLoanRepayments(LoanRepayments);
                 
         returnReim.setTotOverdueFee( getSumInPlans(returnReim.getLoanRepayPlans(), baseDate, Constants.RecvAmtDivision.OVERDUE_FEE) );
         
@@ -111,7 +141,7 @@ public abstract class LoanAmountCalc {
         
         return returnReim; 
         
-    }
+    }    
     
     
     /**

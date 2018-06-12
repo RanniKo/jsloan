@@ -133,6 +133,12 @@ public class Loan {
     private void validateReceipt() {
         
         if(receipts == null || receipts.size() == 0) return;               
+                
+        receipts.sort(new Comparator<LoanReceipt>() {
+            public int compare(LoanReceipt arr1, LoanReceipt arr2) {
+                return arr1.getReceiveDate().compareTo(arr2.getReceiveDate());                
+            }       
+        });
         
         for(LoanReceipt receipt : receipts) {            
             if (loanDate.compareTo(receipt.getBaseDate()) > 0) {  

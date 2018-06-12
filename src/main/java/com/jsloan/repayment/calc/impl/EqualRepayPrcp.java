@@ -7,6 +7,7 @@ import java.util.List;
 import com.jsloan.Loan;
 import com.jsloan.LoanRate;
 import com.jsloan.common.constant.Constants.RepayStatus;
+import com.jsloan.common.constant.Constants.RepayType;
 import com.jsloan.common.util.CalcUtil;
 import com.jsloan.common.util.CommUtil;
 import com.jsloan.repayment.LoanRepayPlan;
@@ -28,7 +29,7 @@ public class EqualRepayPrcp extends LoanAmountCalc {
     @Override
     protected List<LoanRepayPlan> getPlans(Loan loan, int startTerm, BigDecimal balance) {
         
-        BigDecimal calcBalance = new BigDecimal(balance.toString());
+        BigDecimal calcBalance = balance;
         
         List<LoanRepayPlan> repayPlans = new ArrayList<LoanRepayPlan>();
         
@@ -67,7 +68,8 @@ public class EqualRepayPrcp extends LoanAmountCalc {
                 repayPlan.setRecvPrincipal(BigDecimal.ZERO);                
                 repayPlan.setBalance(calcBalance);
                 repayPlan.setAfterBalance(afterBalance);                
-                repayPlan.setRepayStatus(RepayStatus.UNPAID_YET);                    
+                repayPlan.setRepayStatus(RepayStatus.UNPAID_YET);
+                repayPlan.setRepayType(RepayType.TERM_PAY);
                 repayPlans.add(repayPlan);
                 
                 calcBalance = afterBalance;
