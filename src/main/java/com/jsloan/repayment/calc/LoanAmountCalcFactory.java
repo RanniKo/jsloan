@@ -2,10 +2,7 @@ package com.jsloan.repayment.calc;
 
 import com.jsloan.Loan;
 import com.jsloan.common.constant.Constants;
-import com.jsloan.repayment.calc.impl.EqualRepayPrcp;
-import com.jsloan.repayment.calc.impl.EqualRepayPrcpIntr;
-import com.jsloan.repayment.calc.impl.PaymentMaturity;
-import com.jsloan.repayment.calc.impl.ReceiveAndOverdueNormal;
+import com.jsloan.repayment.calc.impl.*;
 
 /**
  * @Date : 2018. 2. 5
@@ -20,17 +17,19 @@ public class LoanAmountCalcFactory {
      * 현재 상환방식을 기준으로만 조건이 정해진다. (조건이 바뀔 경우 변경)
      */
     public static LoanAmountCalc getInstance(Loan loan) {
+        LoanReceiveAndOverdueCalc receiveAndOverdueCalcNormal = new ReceiveAndOverdueNormal();
+        LoanEarylyRedemptionCalc earylyRedemptionCalcNormal = new EarlyRedemptionNormal();
 
         switch(loan.getRepayMethod()) {
             
             case EQUAL_PRCP_INTR:
-                return new EqualRepayPrcpIntr(new ReceiveAndOverdueNormal());
+                return new EqualRepayPrcpIntr(receiveAndOverdueCalcNormal, earylyRedemptionCalcNormal);
             
             case EQUAL_PRCP:
-                return new EqualRepayPrcp(new ReceiveAndOverdueNormal());
+                return new EqualRepayPrcp(receiveAndOverdueCalcNormal, earylyRedemptionCalcNormal);
             
             case PAYMT_MTRT:
-                return new PaymentMaturity(new ReceiveAndOverdueNormal());
+                return new PaymentMaturity(receiveAndOverdueCalcNormal, earylyRedemptionCalcNormal);
                 
             default:
                 return null;

@@ -17,6 +17,8 @@ import com.jsloan.repayment.*;
     ,LoanRepayPlan_EqualRepayPrcp.class
     ,LoanRepayPlan_EqualRepayPrcpIntr.class
     ,LoanRepayPlan_PaymentMaturity.class
+    ,EqualRepayPrcp_unit.class
+    ,LoanReimburse_EarlyRedem_EqualRepayPrcp.class
     })
 public class JsloanAllTest {
 

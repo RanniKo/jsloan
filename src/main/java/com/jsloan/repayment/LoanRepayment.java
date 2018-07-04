@@ -46,7 +46,10 @@ public class LoanRepayment {
     
     //상환종류
     private Constants.RepayType repayType;
-    
+
+    //중도상환수수료
+    private BigDecimal earlyRedemptionFee;
+
     public LoanRepayment() {
         
     }
@@ -64,6 +67,31 @@ public class LoanRepayment {
         this.balance      = loanRepayment.balance     ;
         this.afterBalance = loanRepayment.afterBalance;
         this.repayType    = loanRepayment.repayType   ;
- 
-    }    
+        this.earlyRedemptionFee    = loanRepayment.earlyRedemptionFee   ;
+    }
+
+    /**
+     * 상환내역을 생성한다.
+     */
+    public static LoanRepayment createRepayment(LoanReceipt receipt, LoanRepayPlan repayPlan, BigDecimal repayOverDueFee,
+                                          BigDecimal repayInterest, BigDecimal repayPrincipal) {
+
+        LoanRepayment repayment = new LoanRepayment();
+        repayment.setReceiveDate(receipt.getReceiveDate());
+        repayment.setBaseDate(receipt.getBaseDate());
+        repayment.setPlanDate(repayPlan.getPlanDate());
+        repayment.setTermNo(repayPlan.getTermNo());
+        repayment.setRepayType(receipt.getRepayType());
+        repayment.setBalance(repayPlan.getBalance().subtract(repayPlan.getRecvPrincipal()));
+        repayment.setOverdueFee( repayOverDueFee );
+        repayment.setInterest( repayInterest );
+        repayment.setPrincipal( repayPrincipal );
+        repayment.setRepayAmount(repayment.getOverdueFee()
+                .add(repayment.getInterest())
+                .add(repayment.getPrincipal()));
+        repayment.setAfterBalance(repayment.getBalance().subtract(repayment.getPrincipal()));
+        repayment.setEarlyRedemptionFee(repayPlan.getEarlyRedemptionFee());
+        return repayment;
+
+    }
 }

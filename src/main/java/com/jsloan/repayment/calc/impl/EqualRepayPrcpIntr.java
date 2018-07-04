@@ -12,6 +12,7 @@ import com.jsloan.common.util.CalcUtil;
 import com.jsloan.common.util.CommUtil;
 import com.jsloan.repayment.LoanRepayPlan;
 import com.jsloan.repayment.calc.LoanAmountCalc;
+import com.jsloan.repayment.calc.LoanEarylyRedemptionCalc;
 import com.jsloan.repayment.calc.LoanReceiveAndOverdueCalc;
 
 
@@ -20,11 +21,11 @@ import com.jsloan.repayment.calc.LoanReceiveAndOverdueCalc;
  * @author Kim jongseong
  * @Descrption : [원리금균등방식] 상환계획 산출 
  */
-public class EqualRepayPrcpIntr extends LoanAmountCalc {   
-    
-    public EqualRepayPrcpIntr(LoanReceiveAndOverdueCalc loanReceiveAndOverdueCalc) {
-        super(loanReceiveAndOverdueCalc);
-    }    
+public class EqualRepayPrcpIntr extends LoanAmountCalc {
+
+    public EqualRepayPrcpIntr(LoanReceiveAndOverdueCalc loanReceiveAndOverdueCalc, LoanEarylyRedemptionCalc loanEarylyRedemptionCalc) {
+        super(loanReceiveAndOverdueCalc, loanEarylyRedemptionCalc);
+    }
 
     
     @Override
@@ -85,9 +86,9 @@ public class EqualRepayPrcpIntr extends LoanAmountCalc {
         } 
         
         return repayPlans;
-    }        
+    }
 
-      
-    
+
+
 
 }

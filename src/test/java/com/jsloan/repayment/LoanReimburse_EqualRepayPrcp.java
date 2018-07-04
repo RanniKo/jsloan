@@ -24,7 +24,7 @@ import com.jsloan.repayment.LoanRepayment;
 public class LoanReimburse_EqualRepayPrcp {
     
     private Loan loan;   
-    
+
     private String baseDate;
     
     private BigDecimal expectTotAmountForPay;

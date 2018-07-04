@@ -18,7 +18,7 @@ public class InvalidLoanException extends RuntimeException{
     }
     
     public InvalidLoanException(LoanError loanError, String message) {
-        super(message);
+        super(loanError.getMessage() + ", " + message);
         this.loanError = loanError;
     }
 
@@ -28,7 +28,7 @@ public class InvalidLoanException extends RuntimeException{
     }
 
     public InvalidLoanException(LoanError loanError, String message, Throwable throwable) {
-        super(message, throwable);
+        super(loanError.getMessage() + ", " + message, throwable);
         this.loanError = loanError;
     }    
     

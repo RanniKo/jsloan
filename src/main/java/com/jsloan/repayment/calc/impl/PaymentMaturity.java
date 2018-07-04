@@ -12,6 +12,7 @@ import com.jsloan.common.util.CalcUtil;
 import com.jsloan.common.util.CommUtil;
 import com.jsloan.repayment.LoanRepayPlan;
 import com.jsloan.repayment.calc.LoanAmountCalc;
+import com.jsloan.repayment.calc.LoanEarylyRedemptionCalc;
 import com.jsloan.repayment.calc.LoanReceiveAndOverdueCalc;
 
 /**
@@ -21,9 +22,9 @@ import com.jsloan.repayment.calc.LoanReceiveAndOverdueCalc;
  */
 public class PaymentMaturity extends LoanAmountCalc {
     
-    public PaymentMaturity(LoanReceiveAndOverdueCalc loanReceiveAndOverdueCalc) {
-        super(loanReceiveAndOverdueCalc);
-    }    
+    public PaymentMaturity(LoanReceiveAndOverdueCalc loanReceiveAndOverdueCalc, LoanEarylyRedemptionCalc loanEarylyRedemptionCalc) {
+        super(loanReceiveAndOverdueCalc, loanEarylyRedemptionCalc);
+    }
     
     @Override
     protected List<LoanRepayPlan> getPlans(Loan loan, int startTerm, BigDecimal balance) {
@@ -74,5 +75,5 @@ public class PaymentMaturity extends LoanAmountCalc {
         
         return repayPlans;
     }
-    
+
 }

@@ -7,6 +7,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.jsloan.repayment.calc.impl.EarlyRedemptionNormal;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -29,7 +30,7 @@ import com.jsloan.repayment.calc.impl.ReceiveAndOverdueNormal;
 @RunWith(Parameterized.class)
 public class EqualRepayPrcp_unit {
     
-    private Loan loan;   
+    private Loan loan;
     
     private String baseDate;
     
@@ -163,23 +164,23 @@ public class EqualRepayPrcp_unit {
     
     @Test
     public void equalRepayPrcp_Norm_Unit_Getplans() {
-        LoanAmountCalc loanAmountCalc = new EqualRepayPrcp(new ReceiveAndOverdueNormal());        
-        
+        LoanAmountCalc loanAmountCalc = new EqualRepayPrcp(new ReceiveAndOverdueNormal(), new EarlyRedemptionNormal());
+
         try {
-            
+
             Method method = LoanAmountCalc.class.getDeclaredMethod("getPlans",Loan.class, int.class, BigDecimal.class);
-            
+
             method.setAccessible(true);
-            
+
             List<LoanRepayPlan> result = (List<LoanRepayPlan>) method.invoke(loanAmountCalc, loan, 1, new BigDecimal("2000000"));
-            
+
             System.out.println("========================================================");
             System.out.println("EQUAL_PRCP:"+loan);
-            
+
             for(LoanRepayPlan plan:result) {
                 System.out.println("EQUAL_PRCP:"+plan);
-            }            
-            
+            }
+
         }catch(Exception e) {
             e.printStackTrace();
         }

@@ -64,7 +64,10 @@ public class Loan {
 
     // 대출잔액
     private BigDecimal loanBalance;
-    
+
+    // 중도상환수수료율
+    private List<EarlyRedemFeeRate> earlyRedemFeeRates;
+
     /**
      * 최초 Build 시점에 실행된다. 
      */
@@ -179,6 +182,23 @@ public class Loan {
             }
         }
         
+        return returnRate;
+    }
+
+    /**
+     * 회차를 입력받아 해당시점의 적용 EarlyRedemFeeRate를 반환한다.
+     */
+    public EarlyRedemFeeRate getApplyFeeRate(int term) {
+
+        EarlyRedemFeeRate returnRate = null;
+
+        for(EarlyRedemFeeRate rate : earlyRedemFeeRates) {
+            if(rate.getStartTerm() <= term && rate.getEndTerm() >= term) {
+                returnRate = rate;
+                break;
+            }
+        }
+
         return returnRate;
     }
     

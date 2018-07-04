@@ -32,7 +32,7 @@ public class ReceiveAndOverdueNormal implements LoanReceiveAndOverdueCalc {
      * 수납내역과 상환계획을 이용하여 부분변제(상환내역 생성, 상환계획 갱신)을 반환한다. 
      */ 
     @Override
-    public LoanReimbursePart dealingLoanReceipt(Loan loan, LoanReceipt receipt, List<LoanRepayPlan> loanRepayPlans, int currTerm, String lastRepaymentDate) { 
+    public LoanReimbursePart dealingLoanReceipt(Loan loan, LoanReceipt receipt, List<LoanRepayPlan> loanRepayPlans, int startIndex, String lastRepaymentDate) {
         
         LoanReimbursePart returnLoanReimbursePart = new LoanReimbursePart();        
         
@@ -40,10 +40,12 @@ public class ReceiveAndOverdueNormal implements LoanReceiveAndOverdueCalc {
         List<LoanRepayment> createdRepayments = new ArrayList<>();
                     
         BigDecimal remainAmt = receipt.getReceiptAmount();
-        
-        for(int i=currTerm; i<= loanRepayPlans.size();i++) {
+
+        int currTerm = 0;
+
+        for(int i = startIndex; i< loanRepayPlans.size(); i++) {
             
-            LoanRepayPlan repayPlan = new LoanRepayPlan(loanRepayPlans.get(i-1));
+            LoanRepayPlan repayPlan = new LoanRepayPlan(loanRepayPlans.get(i));
             
             currTerm = repayPlan.getTermNo();
             
@@ -66,7 +68,7 @@ public class ReceiveAndOverdueNormal implements LoanReceiveAndOverdueCalc {
             BigDecimal repayInterest = getRecvAmtForRepayment(amtOrder2, interestForPay);
             BigDecimal repayPrincipal = getRecvAmtForRepayment(amtOrder3, principalForPay);
             
-            createdRepayments.add( createRepayment(receipt, repayPlan, repayOverDueFee, repayInterest, repayPrincipal) );                
+            createdRepayments.add( LoanRepayment.createRepayment(receipt, repayPlan, repayOverDueFee, repayInterest, repayPrincipal) );
             
             repayPlan.setRecvOverdueFee( getRecvAmtForPlan(amtOrder1, overdueFeeForPay, repayPlan, RecvAmtDivision.OVERDUE_FEE) );                
             repayPlan.setRecvInterest( getRecvAmtForPlan(amtOrder2, interestForPay, repayPlan, RecvAmtDivision.INTEREST) );                
@@ -103,32 +105,6 @@ public class ReceiveAndOverdueNormal implements LoanReceiveAndOverdueCalc {
         return returnLoanReimbursePart;
         
     }
-
-
-    /**
-     * 상환내역을 생성한다.
-     */
-    private LoanRepayment createRepayment(LoanReceipt receipt, LoanRepayPlan repayPlan, BigDecimal repayOverDueFee,
-            BigDecimal repayInterest, BigDecimal repayPrincipal) {
-        
-        LoanRepayment repayment = new LoanRepayment();                
-        repayment.setReceiveDate(receipt.getReceiveDate());
-        repayment.setBaseDate(receipt.getBaseDate());
-        repayment.setPlanDate(repayPlan.getPlanDate());
-        repayment.setTermNo(repayPlan.getTermNo());
-        repayment.setRepayType(receipt.getRepayType());
-        repayment.setBalance(repayPlan.getBalance().subtract(repayPlan.getRecvPrincipal()));                
-        repayment.setOverdueFee( repayOverDueFee );
-        repayment.setInterest( repayInterest );
-        repayment.setPrincipal( repayPrincipal );
-        repayment.setRepayAmount(repayment.getOverdueFee()
-                .add(repayment.getInterest())
-                .add(repayment.getPrincipal()));                
-        repayment.setAfterBalance(repayment.getBalance().subtract(repayment.getPrincipal()));
-        return repayment;
-        
-    }
-    
     
     /**
      * 해당 회차의 수납금액계산 (for Repayment) 
@@ -210,8 +186,8 @@ public class ReceiveAndOverdueNormal implements LoanReceiveAndOverdueCalc {
                 
         return CalcUtil.divideM(CalcUtil.multiply(overdueAmt, currOverdueRate, overdueDays), new BigDecimal("365"));
     }
-    
-    
+
+
     private BigDecimal minusToZero(BigDecimal decimal) {
         if(decimal.compareTo(BigDecimal.ZERO) <= 0) return BigDecimal.ZERO;
         return decimal;

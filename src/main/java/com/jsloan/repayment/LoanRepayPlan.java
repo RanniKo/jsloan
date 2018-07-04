@@ -52,7 +52,9 @@ public class LoanRepayPlan {
     
     //상환종류
     private Constants.RepayType repayType;
-    
+
+    //중도상환수수료
+    private BigDecimal earlyRedemptionFee;
     
     public LoanRepayPlan() {
         
@@ -72,6 +74,7 @@ public class LoanRepayPlan {
         this.afterBalance   = loanRepayPlan.afterBalance  ;
         this.repayStatus    = loanRepayPlan.repayStatus   ;
         this.repayType      = loanRepayPlan.repayType     ;
+        this.earlyRedemptionFee = loanRepayPlan.earlyRedemptionFee;
     }
     
 }
